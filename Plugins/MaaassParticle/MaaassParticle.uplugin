@@ -6,10 +6,10 @@
 	"Description": "Make Mass Entity faster and easier to use with Niagara and additional features",
 	"Category": "Other",
 	"CreatedBy": "DevDingDangDong",
-	"CreatedByURL": "",
-	"DocsURL": "",
-	"MarketplaceURL": "",
-	"SupportURL": "",
+	"CreatedByURL": "https://github.com/DevDingDangDong/MaaassParticle.git",
+	"DocsURL": "https://github.com/DevDingDangDong/MaaassParticle/blob/main/Docs/MaaassParticle%20Plugin%20Documentation.md",
+	"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product//53bf8cba-36d8-4500-89bf-5e3fed46ac9d",
+	"SupportURL": "devdingdangdong@gmail.com",
 	"EngineVersion": "5.6.0",
 	"CanContainContent": true,
 	"IsBetaVersion": true,
@@ -43,10 +43,6 @@
 		},
 		{
 			"Name": "MassCrowd",
-			"Enabled": true
-		},
-		{
-			"Name": "MassEntity",
 			"Enabled": true
 		},
 		{
