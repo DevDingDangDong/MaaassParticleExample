@@ -4,8 +4,10 @@
 
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
+#include "MaterialEditingLibrary.h"
 #include "MeshUtilities.h"
 #include "RawMesh.h"
+#include "StaticMeshEditorSubsystem.h"
 #include "AnimToTextureEditor/Public/AnimToTextureBPLibrary.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "UObject/SavePackage.h"
@@ -344,14 +346,14 @@ bool UMPAnimToTextureBPLibrary::CreateMaterialInstanceWithLODs(UMPAnimToTextureD
             }
             
             // Use first material as fallback if base material not found
-            if (!BaseMaterial && OriginalStaticMaterials.Num() > 0)
+            if (!BaseMaterial && OriginalStaticMaterials.Num() > SectionIndex)
             {
                 UE_LOG(LogTemp, Warning, TEXT("Could not find material for index %d, using first material as fallback"), OriginalMaterialIndex);
                 
-                BaseMaterial = Cast<UMaterial>(OriginalStaticMaterials[0].MaterialInterface);
+                BaseMaterial = Cast<UMaterial>(OriginalStaticMaterials[SectionIndex].MaterialInterface);
                 if (!BaseMaterial)
                 {
-                    if (UMaterialInstance* MaterialInstance = Cast<UMaterialInstance>(OriginalStaticMaterials[0].MaterialInterface))
+                    if (UMaterialInstance* MaterialInstance = Cast<UMaterialInstance>(OriginalStaticMaterials[SectionIndex].MaterialInterface))
                     {
                         BaseMaterial = MaterialInstance->GetMaterial();
                     }
@@ -373,13 +375,8 @@ bool UMPAnimToTextureBPLibrary::CreateMaterialInstanceWithLODs(UMPAnimToTextureD
                 UE_LOG(LogTemp, Error, TEXT("Failed to create MaterialInstance for LOD %d Section %d"), LODIndex, SectionIndex);
                 continue;
             }
-
-            // Configure material instance for dynamic parameters
-            FMaterialParameterInfo ParameterInfo;
-            ParameterInfo.Name = TEXT("UseDynamicParameters");
-            ParameterInfo.Association = EMaterialParameterAssociation::GlobalParameter;
-            ParameterInfo.Index = INDEX_NONE;
-            LODMIC->SetStaticSwitchParameterValueEditorOnly(ParameterInfo, true);
+            
+            UMaterialEditingLibrary::SetMaterialInstanceStaticSwitchParameterValue(LODMIC, TEXT("UseDynamicParameters"), true, LayerParameter);
             
             DataAsset->LODInfos[LODIndex].MaterialInstances.Add(LODMIC);
             
@@ -396,34 +393,75 @@ bool UMPAnimToTextureBPLibrary::CreateMaterialInstanceWithLODs(UMPAnimToTextureD
                 NewStaticMaterial.UVChannelData = OriginalStaticMaterials[OriginalMaterialIndex].UVChannelData;
             }
             
+            // Update material instance with data asset parameters
+            UAnimToTextureBPLibrary::UpdateMaterialInstanceFromDataAsset(DataAsset, LODMIC, LayerParameter);
+            
             NewStaticMaterials.Add(NewStaticMaterial);
             MaterialIndexCounter++;
 
-            // Update material instance with data asset parameters
-            UAnimToTextureBPLibrary::UpdateMaterialInstanceFromDataAsset(DataAsset, LODMIC, LayerParameter);
+            LODMIC->PostEditChange();
         }
     }
     
-    // Apply new material array to static mesh
+    // Apply new material array to static mesh using UStaticMeshEditorSubsystem
     if (NewStaticMaterials.Num() > 0)
     {
+        // Get StaticMeshEditorSubsystem
+        UStaticMeshEditorSubsystem* StaticMeshEditorSubsystem = 
+            GEditor->GetEditorSubsystem<UStaticMeshEditorSubsystem>();
+        
+        if (!StaticMeshEditorSubsystem)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to get StaticMeshEditorSubsystem"));
+            return false;
+        }
+
+        // First, set the materials to the static mesh
         StaticMesh->SetStaticMaterials(NewStaticMaterials);
         
-        // Update section material indices sequentially
+        // Apply materials to each LOD section using the subsystem
         MaterialIndexCounter = 0;
+        bool bAllAssignmentsSuccessful = true;
+        
         for (int32 LODIndex = 0; LODIndex < LODNum; ++LODIndex)
         {
-            FStaticMeshLODResources& LODResource = StaticMesh->GetRenderData()->LODResources[LODIndex];
-            
-            for (int32 SectionIndex = 0; SectionIndex < LODResource.Sections.Num(); ++SectionIndex)
+            // Get LOD section count safely
+            int32 SectionCount = 0;
+            if (StaticMesh->GetRenderData() && 
+                StaticMesh->GetRenderData()->LODResources.IsValidIndex(LODIndex))
             {
-                LODResource.Sections[SectionIndex].MaterialIndex = MaterialIndexCounter;
-                MaterialIndexCounter++;
+                SectionCount = StaticMesh->GetRenderData()->LODResources[LODIndex].Sections.Num();
+            }
+            
+            for (int32 SectionIndex = 0; SectionIndex < SectionCount; ++SectionIndex)
+            {
+                // Ensure we don't exceed the material array bounds
+                if (MaterialIndexCounter >= NewStaticMaterials.Num())
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("MaterialIndexCounter exceeded NewStaticMaterials array size"));
+                    break;
+                }
                 
-                UE_LOG(LogTemp, Log, TEXT("LOD %d Section %d: Original Material Index %d -> New Material Index %d"), 
-                       LODIndex, SectionIndex, 
-                       LODSectionToMaterialMap[LODIndex][SectionIndex], 
-                       LODResource.Sections[SectionIndex].MaterialIndex);
+                // Get the material to assign
+                UMaterialInterface* MaterialToAssign = NewStaticMaterials[MaterialIndexCounter].MaterialInterface;
+                
+                if (MaterialToAssign)
+                {
+                    // Use StaticMeshEditorSubsystem to assign material to specific LOD section
+                    StaticMeshEditorSubsystem->SetLODMaterialSlot(
+                        StaticMesh, 
+                        MaterialIndexCounter, 
+                        LODIndex, 
+                        SectionIndex
+                    );
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("MaterialToAssign is null for MaterialIndexCounter %d"), 
+                           MaterialIndexCounter);
+                }
+                
+                MaterialIndexCounter++;
             }
         }
         
@@ -431,15 +469,26 @@ bool UMPAnimToTextureBPLibrary::CreateMaterialInstanceWithLODs(UMPAnimToTextureD
         StaticMesh->PostEditChange();
         StaticMesh->MarkPackageDirty();
         
-        UE_LOG(LogTemp, Log, TEXT("Successfully created %d MaterialInstances for StaticMesh LODs (Original Materials: %d)"), 
-               NewStaticMaterials.Num(), OriginalStaticMaterials.Num());
-        return true;
+        // Force update the static mesh
+        if (StaticMeshEditorSubsystem)
+        {
+            // Rebuild the static mesh to ensure changes are applied
+            StaticMeshEditorSubsystem->ReimportAllCustomLODs(StaticMesh);
+        }
+        
+        if (bAllAssignmentsSuccessful)
+        {
+            UE_LOG(LogTemp, Log, TEXT("Successfully created and assigned %d MaterialInstances for StaticMesh LODs (Original Materials: %d)"), 
+                   NewStaticMaterials.Num(), OriginalStaticMaterials.Num());
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Some material assignments failed, but %d MaterialInstances were created"), 
+                   NewStaticMaterials.Num());
+        }
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("No MaterialInstances were created"));
-        return false;
-    }
+
+    return true;
     
 #else
     UE_LOG(LogTemp, Error, TEXT("This function can only be used in Editor builds"));
@@ -555,7 +604,7 @@ UMaterialInstanceConstant* UMPAnimToTextureBPLibrary::CreateMaterialInstance(con
     }
     
     // Generate full asset path
-    FString FullAssetPath = PackagePath + TEXT("/") + AssetName;
+    FString FullAssetPath = FPaths::Combine(PackagePath, AssetName);
     
     // Check if material instance already exists
     UMaterialInstanceConstant* ExistingMaterialInstance = LoadObject<UMaterialInstanceConstant>(nullptr, *FullAssetPath);
