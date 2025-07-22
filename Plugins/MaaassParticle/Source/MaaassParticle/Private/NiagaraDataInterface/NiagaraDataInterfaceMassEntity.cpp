@@ -729,6 +729,11 @@ bool UNiagaraDataInterfaceMassEntity::RemoveParticleData(int32 ParticleID, FNDI_
 	{
 		return false;
 	}
+
+	if (FNDI_MassEntityParticleData** FoundData = InstanceData->MassParticlesData.Find(ParticleID))
+	{
+		delete* FoundData;
+	}
 	
 	InstanceData->MassParticlesData.Remove(ParticleID);
 	
