@@ -68,7 +68,6 @@ void AMPSpawner::OnConstruction(const FTransform& Transform)
 
 			DefaultAnimState = 0;
 
-			LoopBehavior = ENiagaraLoopBehavior::Once;
 			LoopCount = 1;
 			LoopDuration = 1.0f;
 
@@ -97,13 +96,13 @@ void AMPSpawner::OnConstruction(const FTransform& Transform)
 			}
 
 			DefaultAnimState = MPSpawnerDataAsset->DefaultAnimState;
-
-			LoopBehavior = MPSpawnerDataAsset->LoopBehavior;
 			LoopCount = MPSpawnerDataAsset->LoopCount;
 			LoopDuration = MPSpawnerDataAsset->LoopDuration;
 
-			KillParticleOnLifeHasElapsed = MPSpawnerDataAsset->KillParticleOnLifeHasElapsed;
 			ParticleLifeTime = MPSpawnerDataAsset->ParticleLifeTime;
+
+			ParticleScaleRatio = MPSpawnerDataAsset->ParticleScaleRatio;
+			ParticleScale = MPSpawnerDataAsset->ParticleScale;
 
 			if (UMassEntitySpawnDataGeneratorBase* Template = MPSpawnerDataAsset->SpawnDataGenerator.GeneratorInstance)
 			{
@@ -154,9 +153,10 @@ void AMPSpawner::OnConstruction(const FTransform& Transform)
 
 			NiagaraComponent->SetIntParameter(TEXT("User.LoopCount"), LoopCount);
 			NiagaraComponent->SetFloatParameter(TEXT("User.LoopDuration"), LoopDuration);
-
-			NiagaraComponent->SetBoolParameter(TEXT("User.KillParticleOnLifetime"), KillParticleOnLifeHasElapsed);
 			NiagaraComponent->SetFloatParameter(TEXT("User.ParticleLifetime"), ParticleLifeTime);
+
+			NiagaraComponent->SetFloatParameter(TEXT("User.ParticleScaleRatio"), ParticleScaleRatio);
+			NiagaraComponent->SetVectorParameter(TEXT("User.ParticleScale"), ParticleScale);
 		}
 	}
 
@@ -174,37 +174,6 @@ void AMPSpawner::BeginPlay()
 		if (CrowdNiagaraSystem)
 		{
 			NiagaraComponent->SetIntParameter(TEXT("User.SpawnCount"), SpawnCount);
-		}
-
-		for (const FNiagaraEmitterHandle& Handle : CrowdNiagaraSystem->GetEmitterHandles())
-		{
-			NiagaraComponent->SetEmitterEnable(Handle.GetName(), false);
-		}
-
-
-		if (LoopBehavior == ENiagaraLoopBehavior::Once && KillParticleOnLifeHasElapsed == false)
-		{
-			NiagaraComponent->SetEmitterEnable(EmitterOnceName, true);
-		}
-		else if (LoopBehavior == ENiagaraLoopBehavior::Once && KillParticleOnLifeHasElapsed == true)
-		{
-			NiagaraComponent->SetEmitterEnable(EmitterOnceKillAboutLifetimeName, true);
-		}
-		else if (LoopBehavior == ENiagaraLoopBehavior::Multiple && KillParticleOnLifeHasElapsed == false)
-		{
-			NiagaraComponent->SetEmitterEnable(EmitterMultipleName, true);
-		}
-		else if (LoopBehavior == ENiagaraLoopBehavior::Multiple && KillParticleOnLifeHasElapsed == true)
-		{
-			NiagaraComponent->SetEmitterEnable(EmitterMultipleKillAboutLifetimeName, true);
-		}
-		else if (LoopBehavior == ENiagaraLoopBehavior::Infinite && KillParticleOnLifeHasElapsed == false)
-		{
-			NiagaraComponent->SetEmitterEnable(EmitterInfiniteName, true);
-		}
-		else if (LoopBehavior == ENiagaraLoopBehavior::Infinite && KillParticleOnLifeHasElapsed == true)
-		{
-			NiagaraComponent->SetEmitterEnable(EmitterInfiniteKillAboutLifetimeName, true);
 		}
 
 		NiagaraComponent->Activate(true);

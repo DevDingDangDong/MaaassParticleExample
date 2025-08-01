@@ -56,19 +56,7 @@ void UMPGroundFollowingProcessor::Execute(FMassEntityManager& EntityManager, FMa
                 {
                     const float NewZ = HitResult.ImpactPoint.Z + Settings.GroundHeightOffset;
 
-                    const float ZDifference = FMath::Abs(NewZ - CurrentLocation.Z);
-
-                    if (ZDifference > Settings.ZChangeThreshold)
-                    {
-                        CurrentLocation.Z = NewZ;
-                        Settings.PreviousZ = NewZ;
-                    }
-                    else 
-                    {
-                        CurrentLocation.Z = Settings.PreviousZ;
-                    }
-
-                    Transform.SetLocation(CurrentLocation);
+                    Settings.GroundZValue = NewZ;
                 }
             }
         });

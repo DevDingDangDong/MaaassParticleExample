@@ -33,9 +33,6 @@ public:
     UPROPERTY(EditAnywhere, Category = "Ground Following")
     float GroundHeightOffset = 5.f;
 
-    UPROPERTY(EditAnywhere, Category = "Ground Following")
-    float ZChangeThreshold = 0.1f;
-
 protected:
     /**
      * @brief Overridden from UMassEntityTraitBase. This is where we add our fragments and tags to the entity template.

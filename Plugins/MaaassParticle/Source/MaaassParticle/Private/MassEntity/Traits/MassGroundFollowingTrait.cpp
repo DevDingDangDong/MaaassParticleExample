@@ -12,5 +12,4 @@ void UMassGroundFollowingTrait::BuildTemplate(FMassEntityTemplateBuildContext& B
     Fragment.TraceStartUpOffset = TraceStartUpOffset;
     Fragment.TraceEndDownOffset = TraceEndDownOffset;
     Fragment.GroundHeightOffset = GroundHeightOffset;
-    Fragment.ZChangeThreshold = ZChangeThreshold;
 }

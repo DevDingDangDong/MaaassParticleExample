@@ -49,6 +49,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MaaassParticle", meta = (EditCondition = "KillParticleOnLifeHasElapsed == true"))
     float ParticleLifeTime = 1.0f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MaaassParticle", meta = (ClampMin = "0"))
+    float ParticleScaleRatio = 1.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MaaassParticle")
+    FVector ParticleScale = FVector(1.0f, 1.0f, 1.0f);
+
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MaaassParticle")
     FMassSpawnDataGenerator SpawnDataGenerator;
