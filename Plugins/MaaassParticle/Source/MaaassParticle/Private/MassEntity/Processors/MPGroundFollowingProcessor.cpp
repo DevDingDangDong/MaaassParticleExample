@@ -21,7 +21,7 @@ void UMPGroundFollowingProcessor::ConfigureQueries(const TSharedRef<FMassEntityM
 {
 	// Configure the query: requires a mutable Transform, a read-only GroundTraceSettings, and the FollowGroundTag.
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FMPGroundTraceFragment>(EMassFragmentAccess::ReadOnly); // Settings are only read.
+	EntityQuery.AddRequirement<FMPGroundTraceFragment>(EMassFragmentAccess::ReadWrite); // Settings are only read.
 }
 
 void UMPGroundFollowingProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -31,7 +31,7 @@ void UMPGroundFollowingProcessor::Execute(FMassEntityManager& EntityManager, FMa
         {
             const int32 NumEntities = Context.GetNumEntities();
             const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
-            const TConstArrayView<FMPGroundTraceFragment> SettingsList = Context.GetFragmentView<FMPGroundTraceFragment>();
+            const TArrayView<FMPGroundTraceFragment> SettingsList = Context.GetMutableFragmentView<FMPGroundTraceFragment>();
 
             UWorld* World = GetWorld();
             if (!World)
@@ -42,7 +42,7 @@ void UMPGroundFollowingProcessor::Execute(FMassEntityManager& EntityManager, FMa
             for (int32 i = 0; i < NumEntities; ++i)
             {
                 FTransform& Transform = TransformList[i].GetMutableTransform();
-                const FMPGroundTraceFragment& Settings = SettingsList[i];
+                FMPGroundTraceFragment& Settings = SettingsList[i];
 
                 FVector CurrentLocation = Transform.GetLocation();
 
@@ -54,7 +54,20 @@ void UMPGroundFollowingProcessor::Execute(FMassEntityManager& EntityManager, FMa
 
                 if (bHit && HitResult.ImpactPoint.Z < TraceStart.Z)
                 {
-                    CurrentLocation.Z = HitResult.ImpactPoint.Z + Settings.GroundHeightOffset;
+                    const float NewZ = HitResult.ImpactPoint.Z + Settings.GroundHeightOffset;
+
+                    const float ZDifference = FMath::Abs(NewZ - CurrentLocation.Z);
+
+                    if (ZDifference > Settings.ZChangeThreshold)
+                    {
+                        CurrentLocation.Z = NewZ;
+                        Settings.PreviousZ = NewZ;
+                    }
+                    else 
+                    {
+                        CurrentLocation.Z = Settings.PreviousZ;
+                    }
+
                     Transform.SetLocation(CurrentLocation);
                 }
             }

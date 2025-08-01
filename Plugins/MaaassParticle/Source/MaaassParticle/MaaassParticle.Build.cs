@@ -42,9 +42,8 @@ public class MaaassParticle : ModuleRules
 			"RenderCore",
             "RHI",
             "VectorVM",
-            "ApplicationCore"
-            
-            
+            "ApplicationCore",
+            "MassSignals"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[]
