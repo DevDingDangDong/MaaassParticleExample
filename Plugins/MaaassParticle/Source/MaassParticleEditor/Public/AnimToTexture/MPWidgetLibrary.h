@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AnimToTexture/MPAnimToTextureDataAsset.h"
+#include "MPAnimSequenceInfo.h"
 #include "MPWidgetLibrary.generated.h"
 
 class UMPAnimToTextureDataAsset;
@@ -44,7 +45,7 @@ class MAAASSPARTICLEEDITOR_API UMPWidgetLibrary : public UBlueprintFunctionLibra
         const FString& PackagePath,
         const FString& AssetName,
         USkeletalMesh* SkeletalMesh,
-        const TArray<UAnimSequence*>& SelectedAnims,
+        const TArray<FMPAnimSequenceInfo>& SelectedAnims,
         float SampleRate = 30,
         int32 NumDriverTriangles = 10,
         float Sigma = 1.0f,

@@ -41,7 +41,7 @@ UMPAnimToTextureDataAsset* UMPWidgetLibrary::CreateMPAnimToTextureDA(
 	const FString& PackagePath,
 	const FString& AssetName,
 	USkeletalMesh* SkeletalMesh,
-	const TArray<UAnimSequence*>& SelectedAnims,
+	const TArray<FMPAnimSequenceInfo>& SelectedAnims,
 	float SampleRate,
 	int32 NumDriverTriangles,
 	float Sigma,
@@ -119,6 +119,7 @@ UMPAnimToTextureDataAsset* UMPWidgetLibrary::CreateMPAnimToTextureDA(
 	// Populate the data asset's properties with the provided parameters.
 	TargetDataAsset->SkeletalMesh = SkeletalMesh;
 	TargetDataAsset->AnimSequences.Empty();
+	TargetDataAsset->bLoopAnims.Empty();
 	TargetDataAsset->SampleRate = SampleRate;
 	TargetDataAsset->NumDriverTriangles = NumDriverTriangles;
 	TargetDataAsset->Sigma = Sigma;
@@ -127,13 +128,14 @@ UMPAnimToTextureDataAsset* UMPWidgetLibrary::CreateMPAnimToTextureDA(
 	TargetDataAsset->NumBoneInfluences = NumBoneInfluences;
 
 
-	for (UAnimSequence* Anim : SelectedAnims)
+	for (const FMPAnimSequenceInfo& Anim : SelectedAnims)
 	{
-		if (IsValid(Anim))
+		if (IsValid(Anim.AnimationSequence))
 		{
 			FAnimToTextureAnimSequenceInfo NewInfo;
-			NewInfo.AnimSequence = Anim;
+			NewInfo.AnimSequence = Anim.AnimationSequence;
 			TargetDataAsset->AnimSequences.Add(NewInfo);
+			TargetDataAsset->bLoopAnims.Add(Anim.bIsLoop);
 		}
 	}
 

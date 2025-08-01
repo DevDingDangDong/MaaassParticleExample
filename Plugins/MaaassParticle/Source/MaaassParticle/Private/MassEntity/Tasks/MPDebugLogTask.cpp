@@ -51,7 +51,7 @@ void FMPDebugLogTask::ExitState(FStateTreeExecutionContext& Context, const FStat
     {
         const FMassStateTreeExecutionContext& MassContext = static_cast<FMassStateTreeExecutionContext&>(Context);
         const FMassEntityHandle Entity = MassContext.GetEntity();
-        const FString FullExitString = FString::Printf(TEXT("[T:%.4f] Entity[%d:%d]: %s"), ExecutionTime, Entity.Index, Entity.SerialNumber, *InstanceData.ExitString);
+        const FString FullExitString = FString::Printf(TEXT("Entity[%d:%d]: %s"), Entity.Index, Entity.SerialNumber, *InstanceData.ExitString);
 
         GEngine->AddOnScreenDebugMessage(-1, InstanceData.Duration, InstanceData.TextColor, FullExitString);
     }
