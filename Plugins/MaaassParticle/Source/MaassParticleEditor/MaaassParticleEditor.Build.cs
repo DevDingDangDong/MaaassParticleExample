@@ -49,7 +49,9 @@ public class MaaassParticleEditor : ModuleRules
             "UMG",                   
             "UMGEditor",             
             "WorkspaceMenuStructure",
-            "StaticMeshEditor"
+            "StaticMeshEditor",
+            "LevelEditor",
+            "EditorSubsystem"
         });
 
     }
