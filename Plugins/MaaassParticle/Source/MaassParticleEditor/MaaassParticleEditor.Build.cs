@@ -26,12 +26,12 @@ public class MaaassParticleEditor : ModuleRules
             "ApplicationCore",
 			"UnrealEd",
 			"ToolMenus",
+            "MaaassParticle",
             "AnimToTexture"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[]
         {
-            "MaaassParticle", 
             
 			"AnimToTextureEditor",
 			"MaterialEditor",
