@@ -7,6 +7,7 @@
 #include "AnimToTexture/MPAnimToTextureDataAsset.h"
 #include "NiagaraSystem.h"
 #include "MassEntityConfigAsset.h"
+#include "MassSpawnerTypes.h"
 #include "Niagara/Internal/NiagaraSystemEmitterState.h"
 #include "MPSpawnerDataAsset.generated.h"
 
