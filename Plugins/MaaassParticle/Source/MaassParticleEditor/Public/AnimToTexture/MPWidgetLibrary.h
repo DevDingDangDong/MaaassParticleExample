@@ -171,4 +171,18 @@ class MAAASSPARTICLEEDITOR_API UMPWidgetLibrary : public UBlueprintFunctionLibra
         UMaterialFunction* StandardFunctionToCheck,
         UMaterialFunction* AttributeFunctionToCheck
     );
+
+    /**
+     * @brief Finds and updates all active AMPSpawner actors in the current editor level.
+     * @details This editor utility function iterates through all actors placed in the currently open
+     * editor world (level). For each actor found that is of the AMPSpawner class, it calls the actor's
+     * `UpdateNiagaraComponent` method. This is designed to be a global refresh mechanism, allowing an artist or designer
+     * to apply recent changes (e.g., new data assets or material settings) to all relevant spawners
+     * in the level with a single click, without needing to select each one individually.
+     *
+     * This function is particularly useful after generating new animation textures or modifying materials,
+     * ensuring that all particle spawners in the scene are synchronized with the latest assets.
+     */
+    UFUNCTION(BlueprintCallable, Category = "Maaass Particle Widget")
+    static void UpdateMPSpawnerNiagara();
 };

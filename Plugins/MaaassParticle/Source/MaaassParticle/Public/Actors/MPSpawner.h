@@ -72,6 +72,9 @@ protected:
 	 */
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+public:
+
+	void UpdateNiagaraComponent();
 
 private:
 	/**

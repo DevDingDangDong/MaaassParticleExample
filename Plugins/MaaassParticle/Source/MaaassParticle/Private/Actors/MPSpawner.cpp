@@ -116,49 +116,7 @@ void AMPSpawner::OnConstruction(const FTransform& Transform)
 		}
 	}
 
-	if (NiagaraComponent)
-	{
-
-		NiagaraComponent->Modify();
-		NiagaraComponent->SetAsset(CrowdNiagaraSystem);
-
-		NiagaraComponent->ReinitializeSystem();
-
-		if (CrowdNiagaraSystem)
-		{
-			NiagaraComponent->SetIntParameter(TEXT("User.SpawnCount"), 1);
-			NiagaraComponent->SetIntParameter(TEXT("User.DefaultAnimState"), DefaultAnimState);
-
-			if (AnimToTextureDataAsset)
-			{
-				if (UStaticMesh* CustomMesh = AnimToTextureDataAsset->GetStaticMesh())
-				{
-					NiagaraComponent->SetVariableStaticMesh(TEXT("User.CustomMesh"), CustomMesh);
-				}
-			}
-
-			UNiagaraDataInterface* NDI = NiagaraComponent->GetDataInterface(TEXT("LODBAT"));
-			if (NDI)
-			{
-				if (UNiagaraDataInterfaceLODBAT* NDILODBAT = Cast<UNiagaraDataInterfaceLODBAT>(NDI))
-				{
-					if (NDILODBAT->ECAnimToTextureDataAsset != AnimToTextureDataAsset)
-					{
-						NDILODBAT->ECAnimToTextureDataAsset = AnimToTextureDataAsset;
-						NDILODBAT->MarkRenderDataDirty();
-					}
-				}
-			}
-
-
-			NiagaraComponent->SetIntParameter(TEXT("User.LoopCount"), LoopCount);
-			NiagaraComponent->SetFloatParameter(TEXT("User.LoopDuration"), LoopDuration);
-			NiagaraComponent->SetFloatParameter(TEXT("User.ParticleLifetime"), ParticleLifeTime);
-
-			NiagaraComponent->SetFloatParameter(TEXT("User.ParticleScaleRatio"), ParticleScaleRatio);
-			NiagaraComponent->SetVectorParameter(TEXT("User.ParticleScale"), ParticleScale);
-		}
-	}
+	UpdateNiagaraComponent();
 
 	bIsFirstConstruct = false;
 }
@@ -221,6 +179,53 @@ void AMPSpawner::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
 	ValidateSettings();
 }
 #endif
+
+void AMPSpawner::UpdateNiagaraComponent()
+{
+	if (NiagaraComponent)
+	{
+
+		NiagaraComponent->Modify();
+		NiagaraComponent->SetAsset(CrowdNiagaraSystem);
+
+		NiagaraComponent->ReinitializeSystem();
+
+		if (CrowdNiagaraSystem)
+		{
+			NiagaraComponent->SetIntParameter(TEXT("User.SpawnCount"), 1);
+			NiagaraComponent->SetIntParameter(TEXT("User.DefaultAnimState"), DefaultAnimState);
+
+			if (AnimToTextureDataAsset)
+			{
+				if (UStaticMesh* CustomMesh = AnimToTextureDataAsset->GetStaticMesh())
+				{
+					NiagaraComponent->SetVariableStaticMesh(TEXT("User.CustomMesh"), CustomMesh);
+				}
+			}
+
+			UNiagaraDataInterface* NDI = NiagaraComponent->GetDataInterface(TEXT("LODBAT"));
+			if (NDI)
+			{
+				if (UNiagaraDataInterfaceLODBAT* NDILODBAT = Cast<UNiagaraDataInterfaceLODBAT>(NDI))
+				{
+					if (NDILODBAT->ECAnimToTextureDataAsset != AnimToTextureDataAsset)
+					{
+						NDILODBAT->ECAnimToTextureDataAsset = AnimToTextureDataAsset;
+						NDILODBAT->MarkRenderDataDirty();
+					}
+				}
+			}
+
+
+			NiagaraComponent->SetIntParameter(TEXT("User.LoopCount"), LoopCount);
+			NiagaraComponent->SetFloatParameter(TEXT("User.LoopDuration"), LoopDuration);
+			NiagaraComponent->SetFloatParameter(TEXT("User.ParticleLifetime"), ParticleLifeTime);
+
+			NiagaraComponent->SetFloatParameter(TEXT("User.ParticleScaleRatio"), ParticleScaleRatio);
+			NiagaraComponent->SetVectorParameter(TEXT("User.ParticleScale"), ParticleScale);
+		}
+	}
+}
 
 void AMPSpawner::ValidateSettings()
 {

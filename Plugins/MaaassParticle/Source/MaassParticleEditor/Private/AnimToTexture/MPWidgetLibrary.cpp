@@ -12,6 +12,8 @@
 #include "Materials/MaterialExpressionMaterialAttributeLayers.h"
 #include "Materials/MaterialFunction.h"
 #include "Materials/MaterialInterface.h"
+#include "Actors/MPSpawner.h"
+#include "EngineUtils.h"
 
 /**
  * @brief Recursively traverses the material parent chain to collect all unique materials and material instances.
@@ -569,5 +571,27 @@ bool UMPWidgetLibrary::IsBatchValidForSetupBoneAnimation(TArray<UMaterialInterfa
 	}
 
 	return true;
+}
+
+void UMPWidgetLibrary::UpdateMPSpawnerNiagara()
+{
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+	if (!World)
+	{
+		return ;
+	}
+
+	for (TActorIterator<AMPSpawner> It(World); It; ++It)
+	{
+		AMPSpawner* TargetActor = *It;
+		if (TargetActor)
+		{
+			// 정의해둔 함수를 호출합니다.
+			TargetActor->UpdateNiagaraComponent();
+		}
+	}
+
+
+	return ;
 }
 
