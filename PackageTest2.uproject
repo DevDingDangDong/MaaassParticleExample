@@ -17,6 +17,11 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "MaaassParticle",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product/1f1ad989-1f70-4c8c-8ca05a3ffa55bd48"
 		}
 	]
 }
